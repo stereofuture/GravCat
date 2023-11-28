@@ -17,26 +17,20 @@ time_held = 0
 last_frame_time = time.ticks_ms()
 
 # Platform variables
-platform_speed = 1
 platform_width_max = 24
 platform_width_min = 14
-min_distance = 20
-platforms = []
+min_distance = 10
+max_distance = 20
+bottom_platforms = [{'position': [0, 0], 'width':20, 'on_screen': False}] * 3
+top_platforms = [{'position': [0, 0], 'width':20, 'on_screen': False}] * 3
 
 # Character variables
 character_position = [4, 30]
 gravity_direction = 1
 character_width = 8
 
-platform_on_screen = False
-top_platform_on_screen = False
-platform_on_screen_2 = False
-top_platform_on_screen_2 = False
-platform_on_screen_3 = False
-top_platform_on_screen_3 = False
-
-prev_platform_position = [78, 0]
-prev_top_platform_position = [78, 0]
+prev_platform_position_x = 0
+prev_top_platform_position_x = 0
 
 thumby.display.setFPS(30)
 
@@ -84,18 +78,17 @@ def inputPressed():
 
 def reset_game():
     global character_position, current_score, gravity_direction, button_state
-    global platform_on_screen, top_platform_on_screen, platform_position, platform_width
-    global top_platform_position, top_platform_width
+    global top_platforms, bottom_platforms
     current_score = 0
     character_position = [5, 10]
     gravity_direction = -1
     button_state = 0
-    platform_on_screen = True
-    top_platform_on_screen = True
-    platform_position = [50, 0]
-    platform_width = 20
-    top_platform_position = [66, 0]
-    top_platform_width = 20
+    bottom_platforms[0] = {'position': [50, 36], 'width':20, 'on_screen': True, 'id': 'B1'}
+    top_platforms[0] = {'position': [66, 0], 'width':20, 'on_screen': True, 'id': 'T1'}
+    bottom_platforms[1] = {'position': [0, 0], 'width':0, 'on_screen': False, 'id': 'B2'}
+    top_platforms[1] = {'position': [0, 0], 'width':0, 'on_screen': False, 'id': 'T2'}
+    bottom_platforms[2] = {'position': [0, 0], 'width':0, 'on_screen': False, 'id': 'B3'}
+    top_platforms[2] = {'position': [0, 0], 'width':0, 'on_screen': True, 'id': 'T3'}
     
 def update_character(touching_platform, touching_top_platform):
     global character_position, gravity_direction, game_state, frameCtr, character_width, current_score
@@ -113,14 +106,12 @@ def update_character(touching_platform, touching_top_platform):
     if character_position[1] <= -character_width or character_position[1] >= 34:
         game_state = RESULTS
 
-def update_platform(platform):
-    pass
-
-def detect_platform_collision(platform_position, platform_width):
+def detect_platform_collision(platform):
     global character_position, character_width
-    # print("high: " + str(character_position[0] + character_width))
-    # print("top_plat: " + str(top_platform_position[0] + top_platform_width))
-    return platform_position[0]  - character_width  <= character_position[0] and character_position[0] + character_width <= platform_position[0] + platform_width
+# TODO: Think about reducing leeway
+    # print(character_position)
+    return platform['position'][0]  - character_width  <= character_position[0] \
+        and character_position[0] + character_width <= platform['position'][0] + platform['width']
 
 # Main game loop
 while True:
@@ -152,121 +143,60 @@ while True:
         touching_top_platform = False
         
         if character_position[1] + character_width == 35:
-            touching_platform = detect_platform_collision(platform_position, platform_width) \
-            or detect_platform_collision(platform_position_2, platform_width_2) \
-            or detect_platform_collision(platform_position_3, platform_width_3) 
-        
+            for platform in bottom_platforms:
+                if detect_platform_collision(platform):
+                    touching_platform = True
+                    break;
+
         if character_position[1] == 4:
-            touching_top_platform = detect_platform_collision(top_platform_position, top_platform_width) \
-            or detect_platform_collision(top_platform_position_2, top_platform_width_2) \
-            or detect_platform_collision(top_platform_position_3, top_platform_width_3)
+            for platform in top_platforms:
+                if detect_platform_collision(platform):
+                    touching_top_platform = True
+                    break;
         
-        # print(str(touching_platform))
         update_character(touching_platform, touching_top_platform)
 
-        if not platform_on_screen:
-            platform_width = random.randint(platform_width_min, platform_width_max)
-            platform_on_screen = True
-            # platform_position = [78 + random.randint(2, 10),36]
-            
-            min_x_position = prev_platform_position[0] + platform_width + min_distance
-            platform_position = [max(min_x_position, 78 + random.randint(2, 10)), 36]
-            
-            prev_platform_position = platform_position.copy()
-            
-        if not top_platform_on_screen:
-            top_platform_width = random.randint(platform_width_min, platform_width_max)
-            top_platform_on_screen = True
-            # top_platform_position = [78,0]
-            
-            top_min_x_position = prev_top_platform_position[0] + top_platform_width + min_distance
-            top_platform_position = [max(top_min_x_position, 78 + random.randint(2, 10)), 0]
-            
-            prev_top_platform_position = top_platform_position.copy()
-            
-        if not platform_on_screen_2:
-            platform_width_2 = random.randint(platform_width_min, platform_width_max)
-            platform_on_screen_2 = True
-            platform_position_2 = [78 + random.randint(2, 10), 36]
-            
-            min_x_position = prev_platform_position[0] + platform_width + min_distance
-            platform_position_2 = [max(min_x_position, 78 + random.randint(2, 10)), 36]
-            
-            prev_platform_position = platform_position_2.copy()
-            
-        if not top_platform_on_screen_2:
-            top_platform_width_2 = random.randint(platform_width_min, platform_width_max)
-            top_platform_on_screen_2 = True
-            
-            top_min_x_position = prev_top_platform_position[0] + top_platform_width + min_distance
-            top_platform_position_2 = [max(top_min_x_position, 78 + random.randint(2, 10)), 0]
-            
-            prev_top_platform_position = top_platform_position_2.copy()
-
-        if not platform_on_screen_3:
-            platform_width_3 = random.randint(platform_width_min, platform_width_max)
-            platform_on_screen_3 = True
-            platform_position_3 = [78 + random.randint(2, 10), 36]
-            
-            min_x_position = prev_platform_position[0] + platform_width + min_distance
-            platform_position_3 = [max(min_x_position, 78 + random.randint(2, 10)), 36]
-            
-            prev_platform_position = platform_position_3.copy()
-            
-        if not top_platform_on_screen_3:
-            top_platform_width_3 = random.randint(platform_width_min, platform_width_max)
-            top_platform_on_screen_3 = True
-
-            top_min_x_position = prev_top_platform_position[0] + top_platform_width + min_distance
-            top_platform_position_3 = [max(top_min_x_position, 78 + random.randint(2, 10)), 0]
-            
-            prev_top_platform_position = top_platform_position_3.copy()
-
         
-        for _ in range(platform_speed):
-            # Draw platforms
-            thumby.display.drawFilledRectangle(platform_position[0], platform_position[1], platform_width, 4, 1)
-            thumby.display.drawFilledRectangle(top_platform_position[0], top_platform_position[1], top_platform_width, 4, 1)
-
-            thumby.display.drawFilledRectangle(platform_position_2[0], platform_position_2[1], platform_width_2, 4, 1)
-            thumby.display.drawFilledRectangle(top_platform_position_2[0], top_platform_position_2[1], top_platform_width_2, 4, 1)
-
-            thumby.display.drawFilledRectangle(platform_position_3[0], platform_position_3[1], platform_width_3, 4, 1)
-            thumby.display.drawFilledRectangle(top_platform_position_3[0], top_platform_position_3[1], top_platform_width_3, 4, 1)
-
-
-            # Draw character
-            # thumby.display.drawFilledRectangle(character_position[0], character_position[1], character_width, 5, 1)
-            if gravity_direction > 0:
-                runnerSpr = thumby.Sprite(character_width, character_width, catFootForward+catFeetForward+catSplit+catFrontSplit+catFeetBack+catBackFootTail,  character_position[0], character_position[1])
-            else:
-                runnerSpr = thumby.Sprite(character_width, character_width, catFootForward+catFeetForward+catSplit+catFrontSplit+catFeetBack+catBackFootTail,  character_position[0], character_position[1], -1, False, True)
-            runnerSpr.setFrame(frameCtr)
-            thumby.display.drawSprite(runnerSpr)
-
-            #DEBUG to hold platforms still
-            # platform_position[0] = 5
-            # top_platform_position[0] = 5
-
-            platform_position[0] -= 1
-            top_platform_position[0] -= 1
-            if platform_position[0] < 0 - platform_width:
-                platform_on_screen = False
-            if top_platform_position[0] < 0 - top_platform_width:
-                top_platform_on_screen = False
-            
-            platform_position_2[0] -= 1
-            top_platform_position_2[0] -= 1
-            if platform_position_2[0] < 0 - platform_width_2:
-                platform_on_screen_2 = False
-            if top_platform_position_2[0] < 0 - top_platform_width_2:
-                top_platform_on_screen_2 = False
+        for platform in bottom_platforms:
+            if not platform['on_screen']:
+                platform['width'] = random.randint(platform_width_min, platform_width_max)
+                platform['on_screen'] = True
+                platform['position'] = [prev_platform_position_x + random.randint(min_distance, max_distance), 36]
                 
-            
-            if thumby.inputJustPressed():
-                gravity_direction = -gravity_direction
-                # Gives a "freeze" feel as the gravity reverses
-                time.sleep(0.05)
+            prev_platform_position_x = platform['position'][0] + platform['width']
+
+            thumby.display.drawFilledRectangle(platform['position'][0], platform['position'][1], platform['width'], 4, 1)
+            platform['position'][0] -= 1
+            if platform['position'][0] < 0 - platform['width']:
+                platform['on_screen'] = False
+
+        for platform in top_platforms:
+            if not platform['on_screen']:
+                platform['width'] = random.randint(platform_width_min, platform_width_max)
+                platform['on_screen'] = True
+                platform['position'] = [prev_top_platform_position_x + random.randint(min_distance, max_distance), 0]
+
+            prev_top_platform_position_x = platform['position'][0] + platform['width']
+
+
+            thumby.display.drawFilledRectangle(platform['position'][0], platform['position'][1], platform['width'], 4, 1)
+            platform['position'][0] -= 1
+            if platform['position'][0] < 0 - platform['width']:
+                platform['on_screen'] = False
+
+        # Draw character
+        # thumby.display.drawFilledRectangle(character_position[0], character_position[1], character_width, character_width, 1)
+        if gravity_direction > 0:
+            runnerSpr = thumby.Sprite(character_width, character_width, catFootForward+catFeetForward+catSplit+catFrontSplit+catFeetBack+catBackFootTail,  character_position[0], character_position[1])
+        else:
+            runnerSpr = thumby.Sprite(character_width, character_width, catFootForward+catFeetForward+catSplit+catFrontSplit+catFeetBack+catBackFootTail,  character_position[0], character_position[1], -1, False, True)
+        runnerSpr.setFrame(frameCtr)
+        thumby.display.drawSprite(runnerSpr)
+        
+        if thumby.inputJustPressed():
+            gravity_direction = -gravity_direction
+            # Gives a "freeze" feel as the gravity reverses
+            time.sleep(0.05)
         thumby.display.drawText(str(current_score), 52, 16, 1)
 
     elif game_state == TWO_PLAYER_RUNNING:
@@ -295,6 +225,5 @@ while True:
     
     # TODO:
     # Add front collision
-    # Stagger platforms
     # Change scoring based on platform difficulty
     # Clean Up
