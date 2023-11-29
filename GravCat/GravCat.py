@@ -81,10 +81,10 @@ def reset_game():
     global top_platforms, bottom_platforms
     current_score = 0
     character_position = [5, 10]
-    gravity_direction = -1
+    gravity_direction = 1
     button_state = 0
-    bottom_platforms[0] = {'position': [50, 36], 'width':20, 'on_screen': True, 'id': 'B1'}
-    top_platforms[0] = {'position': [66, 0], 'width':20, 'on_screen': True, 'id': 'T1'}
+    bottom_platforms[0] = {'position': [5, 36], 'width':40, 'on_screen': True, 'id': 'B1'}
+    top_platforms[0] = {'position': [5, 0], 'width':40, 'on_screen': True, 'id': 'T1'}
     bottom_platforms[1] = {'position': [0, 0], 'width':0, 'on_screen': False, 'id': 'B2'}
     top_platforms[1] = {'position': [0, 0], 'width':0, 'on_screen': False, 'id': 'T2'}
     bottom_platforms[2] = {'position': [0, 0], 'width':0, 'on_screen': False, 'id': 'B3'}
@@ -193,7 +193,7 @@ while True:
         runnerSpr.setFrame(frameCtr)
         thumby.display.drawSprite(runnerSpr)
         
-        if thumby.inputJustPressed():
+        if thumby.inputJustPressed() and (touching_top_platform or touching_platform):
             gravity_direction = -gravity_direction
             # Gives a "freeze" feel as the gravity reverses
             time.sleep(0.05)
